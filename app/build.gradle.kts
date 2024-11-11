@@ -58,6 +58,8 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.runtime.livedata)
     val room_version = "2.6.1"
 
     implementation("androidx.media3:media3-exoplayer:1.4.1")
