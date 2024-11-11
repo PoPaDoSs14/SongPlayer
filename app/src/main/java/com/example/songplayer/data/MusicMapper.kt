@@ -9,6 +9,7 @@ class MusicMapper {
         return MusicDbModel(
             id = music.id,
             name = music.name,
+            artist = music.artist,
             musicLink = music.musicLink.toString()
         )
     }
@@ -17,6 +18,7 @@ class MusicMapper {
         return Music(
             id = musicDbModel.id,
             name = musicDbModel.name,
+            artist = musicDbModel.artist,
             musicLink = musicDbModel.musicLink.toUri()
         )
     }

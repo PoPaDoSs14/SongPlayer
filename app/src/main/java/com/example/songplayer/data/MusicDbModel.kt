@@ -9,5 +9,6 @@ data class MusicDbModel (
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     val name: String,
+    val artist: String,
     val musicLink: String
 )

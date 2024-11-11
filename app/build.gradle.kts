@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.songplayer"
-    compileSdk = 34
+    compileSdk = 35
 
 
     room {
