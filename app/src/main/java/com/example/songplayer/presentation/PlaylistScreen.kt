@@ -1,5 +1,11 @@
 package com.example.songplayer.presentation
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -20,16 +26,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.songplayer.domain.Music
 
 @Composable
 fun PlaylistScreen(viewModel: PlaylistViewModel) {
+    val context = LocalContext.current
     val musicList by viewModel.musicList.observeAsState(emptyList())
+
+    val pickAudioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                viewModel.addMusic(it)
+            }
+        }
+    )
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = {  }) {
+            FloatingActionButton(onClick = {
+                pickAudioLauncher.launch("audio/*")
+            }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить музыку")
             }
         }

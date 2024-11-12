@@ -2,14 +2,15 @@ package com.example.songplayer.data
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MusicDao {
 
-    @Insert
-    fun addMusic(musicDbModel: MusicDbModel)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addMusic(musicDbModel: MusicDbModel)
 
     @Query("DELETE FROM music WHERE id=:id")
     fun deleteMusic(id: Int)

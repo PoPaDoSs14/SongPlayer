@@ -1,11 +1,17 @@
 package com.example.songplayer.presentation
 
 import android.app.Application
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.songplayer.data.RepositoryImpl
 import com.example.songplayer.domain.Music
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 
 class PlaylistViewModel(application: Application): AndroidViewModel(application) {
 
@@ -15,4 +21,29 @@ class PlaylistViewModel(application: Application): AndroidViewModel(application)
     private val _musicList = MutableLiveData<List<Music>>(emptyList())
     val musicList: LiveData<List<Music>> get() = _musicList
 
+    init {
+        viewModelScope.launch {
+            repo.getMusicList().collect { musicList ->
+                _musicList.value = musicList
+            }
+        }
+    }
+
+    fun addMusic(uri: Uri) {
+        viewModelScope.launch {
+            val mediaMetadataRetriever = MediaMetadataRetriever()
+            mediaMetadataRetriever.setDataSource(getApplication(), uri)
+
+            val name = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Unknown"
+            val artist = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: "Unknown"
+
+            val newMusic = Music(id = 0, name = name, artist = artist, musicLink = uri)
+
+            repo.addMusic(newMusic)
+
+            repo.getMusicList().collect { musicList ->
+                _musicList.value = musicList
+            }
+        }
+    }
 }
