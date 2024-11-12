@@ -8,7 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,16 +25,24 @@ import com.example.songplayer.domain.Music
 
 @Composable
 fun PlaylistScreen(viewModel: PlaylistViewModel) {
-
     val musicList by viewModel.musicList.observeAsState(emptyList())
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.secondary)
-    ) {
-        items(musicList) { music ->
-            MusicItem(music)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = {  }) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить музыку")
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.secondary)
+                .padding(innerPadding)
+        ) {
+            items(musicList) { music ->
+                MusicItem(music)
+            }
         }
     }
 }
@@ -41,7 +54,7 @@ fun MusicItem(music: Music) {
             .fillMaxWidth()
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.primary)
-            .clickable { /* Handle music item click, e.g. play music */ },
+            .clickable { },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

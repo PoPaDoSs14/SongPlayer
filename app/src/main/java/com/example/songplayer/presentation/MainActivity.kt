@@ -11,10 +11,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val playlistViewModel = PlaylistViewModel(application)
         setContent {
             SongPlayerTheme {
                 val navController = rememberNavController()
-                SongApp(navController = navController)
+                SongApp(navController = navController, playlistViewModel = playlistViewModel)
             }
         }
     }

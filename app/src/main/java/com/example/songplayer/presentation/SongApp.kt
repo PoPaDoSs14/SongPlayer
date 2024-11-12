@@ -6,13 +6,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
 @Composable
-fun SongApp(navController: NavHostController) {
+fun SongApp(navController: NavHostController, playlistViewModel: PlaylistViewModel) {
 
 
     NavHost(
         navController = navController,
         startDestination = "PlaylistScreen")
     {
-        composable("PlaylistScreen") { PlaylistScreen(musicList = emptyList()) }
+        composable("PlaylistScreen") { PlaylistScreen(playlistViewModel) }
     }
 }
