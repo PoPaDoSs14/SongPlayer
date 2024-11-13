@@ -29,6 +29,10 @@ class PlaylistViewModel(application: Application): AndroidViewModel(application)
         }
     }
 
+    fun getMusicById(id: String?): Music? {
+        return _musicList.value?.find { it.id.toString() == id }
+    }
+
     fun addMusic(uri: Uri) {
         viewModelScope.launch {
             val mediaMetadataRetriever = MediaMetadataRetriever()

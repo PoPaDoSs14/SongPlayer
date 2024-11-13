@@ -30,10 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.songplayer.domain.Music
 
 @Composable
-fun PlaylistScreen(viewModel: PlaylistViewModel) {
+fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostController) {
     val context = LocalContext.current
     val musicList by viewModel.musicList.observeAsState(emptyList())
 
@@ -62,20 +63,23 @@ fun PlaylistScreen(viewModel: PlaylistViewModel) {
                 .padding(innerPadding)
         ) {
             items(musicList) { music ->
-                MusicItem(music)
+                MusicItem(music, navHostController)
             }
         }
     }
 }
 
 @Composable
-fun MusicItem(music: Music) {
+fun MusicItem(music: Music, navController: NavHostController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 24.dp, horizontal = 16.dp)
             .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp))
-            .clickable { },
+            .clickable {
+                // Передаем идентификатор или название музыки через навигацию
+                navController.navigate("MusicPlayerScreen/${music.id}") // Используем id или любую уникальную характеристику
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

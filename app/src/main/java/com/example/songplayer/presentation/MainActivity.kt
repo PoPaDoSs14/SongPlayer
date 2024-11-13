@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SongPlayerTheme {
                 val navController = rememberNavController()
-                SongApp(navController = navController, playlistViewModel = playlistViewModel)
+                SongApp(navController = navController, playlistViewModel = playlistViewModel, context = application)
             }
         }
     }
