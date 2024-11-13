@@ -59,20 +59,22 @@ fun MusicPlayerScreen(music: Music?) {
 
             tempFile?.let {
                 mediaPlayer.setDataSource(it.absolutePath)
-                mediaPlayer.prepare()
-                duration = mediaPlayer.duration
-                mediaPlayer.start()
-                isPlaying = true
-
-                while (isPlaying) {
-                    currentPosition = mediaPlayer.currentPosition
-                    delay(1000)
+                mediaPlayer.prepareAsync()
+                mediaPlayer.setOnPreparedListener {
+                    duration = mediaPlayer.duration
+                    mediaPlayer.start()
+                    isPlaying = true
                 }
 
                 mediaPlayer.setOnCompletionListener {
                     isPlaying = false
                 }
             }
+        }
+
+        while (isPlaying) {
+            delay(1000)
+            currentPosition = mediaPlayer.currentPosition
         }
     }
 
@@ -86,8 +88,6 @@ fun MusicPlayerScreen(music: Music?) {
             }
         }
     }
-
-
 
     if (music != null) {
         Column(
@@ -110,7 +110,7 @@ fun MusicPlayerScreen(music: Music?) {
             )
 
             LinearProgressIndicator(
-                progress = currentPosition.toFloat() / duration,
+                progress = if (duration > 0) currentPosition.toFloat() / duration else 0f,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
@@ -121,7 +121,7 @@ fun MusicPlayerScreen(music: Music?) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(onClick = {
-                    //onPrevious()
+                    // onPrevious()
                 }) {
                     Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
                 }
@@ -141,7 +141,7 @@ fun MusicPlayerScreen(music: Music?) {
                 }
 
                 IconButton(onClick = {
-                    //onNext()
+                    // onNext()
                 }) {
                     Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Следующий трек")
                 }
