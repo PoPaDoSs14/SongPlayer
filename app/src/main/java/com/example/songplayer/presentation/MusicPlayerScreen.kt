@@ -5,6 +5,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,6 +92,7 @@ fun MusicPlayerScreen(music: Music?) {
     if (music != null) {
         Column(
             modifier = Modifier
+                .background(MaterialTheme.colorScheme.secondary)
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -109,7 +111,9 @@ fun MusicPlayerScreen(music: Music?) {
 
             LinearProgressIndicator(
                 progress = currentPosition.toFloat() / duration,
-                modifier = Modifier.fillMaxWidth().height(4.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
             )
 
             Row(
