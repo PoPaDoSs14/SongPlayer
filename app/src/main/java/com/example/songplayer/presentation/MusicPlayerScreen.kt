@@ -53,9 +53,10 @@ fun MusicPlayerScreen(music: Music?) {
         mediaPlayer.reset()
 
         if (music?.musicLink != null) {
-            val musicUri = Uri.parse(music.musicLink.toString())
+            val musicUri = Uri.parse(music.musicLink.path)
 
             tempFile = saveFileFromUri(context.contentResolver, musicUri, context)
+
 
             tempFile?.let {
                 mediaPlayer.setDataSource(it.absolutePath)

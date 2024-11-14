@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -39,10 +40,11 @@ fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostContr
     val musicList by viewModel.musicList.observeAsState(emptyList())
 
     val pickAudioLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
+        contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri: Uri? ->
             uri?.let {
                 viewModel.addMusic(it)
+
             }
         }
     )
@@ -50,7 +52,7 @@ fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostContr
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                pickAudioLauncher.launch("audio/*")
+                pickAudioLauncher.launch(arrayOf("audio/*"))
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить музыку")
             }
