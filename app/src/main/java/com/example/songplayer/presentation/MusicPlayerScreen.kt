@@ -4,7 +4,10 @@ import android.content.ContentResolver
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,11 +38,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toFile
 import com.example.songplayer.domain.Music
 import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileOutputStream
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun MusicPlayerScreen(music: Music?) {
     val context = LocalContext.current
@@ -51,6 +56,8 @@ fun MusicPlayerScreen(music: Music?) {
 
     LaunchedEffect(music) {
         mediaPlayer.reset()
+
+
 
         if (music?.musicLink != null) {
             val musicUri = Uri.parse(music.musicLink.path)
