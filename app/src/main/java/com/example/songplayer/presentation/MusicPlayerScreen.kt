@@ -43,6 +43,7 @@ import com.example.songplayer.domain.Music
 import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
@@ -58,11 +59,10 @@ fun MusicPlayerScreen(music: Music?) {
         mediaPlayer.reset()
 
 
-
         if (music?.musicLink != null) {
-            val musicUri = Uri.parse(music.musicLink.path)
+            val musicUri = Uri.parse(music.musicLink.toString())
 
-            tempFile = saveFileFromUri(context.contentResolver, musicUri, context)
+            tempFile = saveFileFromUri(context, musicUri,)
 
 
             tempFile?.let {
@@ -160,22 +160,29 @@ fun MusicPlayerScreen(music: Music?) {
     }
 }
 
-fun saveFileFromUri(contentResolver: ContentResolver, uri: Uri, context: Context): File? {
-    return try {
-        val tempFile = File.createTempFile("music", ".mp3", context.cacheDir)
-        tempFile.deleteOnExit()
+fun saveFileFromUri(context: Context, uri: Uri): File? {
+    try {
+        // Получаем InputStream из URI
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
 
-        val inputStream = contentResolver.openInputStream(uri) ?: return null
-        val outputStream = FileOutputStream(tempFile)
+        // Проверяем, что InputStream не нулевой
+        if (inputStream != null) {
+            // Определите, куда вы хотите сохранить новый файл
+            val outputFile = File(context.getExternalFilesDir(null), "outputFileName.extension") // Укажите нужные вам имя и расширение
 
-        inputStream.use { input ->
-            outputStream.use { output ->
-                input.copyTo(output)
+            // Используем FileOutputStream для записи данных
+            FileOutputStream(outputFile).use { outputStream ->
+                inputStream.copyTo(outputStream) // Копируем данные из inputStream в outputStream
             }
+
+            // Закрываем inputStream после использования
+            inputStream.close()
+            return outputFile
+        } else {
+            Log.e("SaveFile", "Unable to open InputStream")
         }
-        tempFile
     } catch (e: Exception) {
-        Log.e("MusicPlayer", "Error saving file from URI", e)
-        null
+        Log.e("SaveFile", "An error occurred while saving the file", e)
     }
+    return null
 }
