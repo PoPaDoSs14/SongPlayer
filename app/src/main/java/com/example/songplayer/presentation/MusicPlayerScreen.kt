@@ -56,22 +56,30 @@ fun MusicPlayerScreen(music: Music?) {
     var tempFile: File? by remember { mutableStateOf(null) }
 
     LaunchedEffect(music) {
-        mediaPlayer.reset()
+        // Сохраняем текущее состояние воспроизведения
+        if (isPlaying) {
+            mediaPlayer.pause()
+        }
 
+        mediaPlayer.reset()
 
         if (music?.musicLink != null) {
             val musicUri = Uri.parse(music.musicLink.toString())
 
-            tempFile = saveFileFromUri(context, musicUri,)
-
+            tempFile = saveFileFromUri(context, musicUri)
 
             tempFile?.let {
                 mediaPlayer.setDataSource(it.absolutePath)
                 mediaPlayer.prepareAsync()
                 mediaPlayer.setOnPreparedListener {
                     duration = mediaPlayer.duration
-                    mediaPlayer.start()
-                    isPlaying = true
+
+                    // Восстанавливаем положение воспроизведения
+                    if (!isPlaying) {
+                        mediaPlayer.seekTo(currentPosition)
+                        mediaPlayer.start()
+                        isPlaying = true
+                    }
                 }
 
                 mediaPlayer.setOnCompletionListener {
@@ -80,6 +88,7 @@ fun MusicPlayerScreen(music: Music?) {
             }
         }
 
+        // Обновление текущей позиции во время воспроизведения
         while (isPlaying) {
             delay(1000)
             currentPosition = mediaPlayer.currentPosition
@@ -96,6 +105,7 @@ fun MusicPlayerScreen(music: Music?) {
             }
         }
     }
+
 
     if (music != null) {
         Column(
