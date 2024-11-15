@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,7 +36,7 @@ import androidx.navigation.NavHostController
 import com.example.songplayer.domain.Music
 
 @Composable
-fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostController) {
+fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostController, getContent: ActivityResultLauncher<Intent>) {
     val context = LocalContext.current
     val musicList by viewModel.musicList.observeAsState(emptyList())
 
@@ -49,10 +50,15 @@ fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostContr
         }
     )
 
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+        addCategory(Intent.CATEGORY_OPENABLE)
+        type = "audio/*"
+    }
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                pickAudioLauncher.launch(arrayOf("audio/*"))
+                getContent.launch(intent)
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить музыку")
             }
@@ -79,7 +85,7 @@ fun MusicItem(music: Music, navController: NavHostController) {
             .padding(vertical = 24.dp, horizontal = 16.dp)
             .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp))
             .clickable {
-                // Передаем идентификатор или название музыки через навигацию
+
                 navController.navigate("MusicPlayerScreen/${music.id}") // Используем id или любую уникальную характеристику
             },
         verticalAlignment = Alignment.CenterVertically
