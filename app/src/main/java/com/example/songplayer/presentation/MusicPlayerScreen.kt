@@ -56,25 +56,23 @@ fun MusicPlayerScreen(music: Music?) {
     var tempFile: File? by remember { mutableStateOf(null) }
 
     LaunchedEffect(music) {
-        // Сохраняем текущее состояние воспроизведения
         if (isPlaying) {
             mediaPlayer.pause()
         }
 
         mediaPlayer.reset()
 
-        if (music?.musicLink != null) {
-            val musicUri = Uri.parse(music.musicLink.toString())
+        music?.musicLink?.let { musicLink ->
+            val musicUri = Uri.parse(musicLink.toString())
 
-            tempFile = saveFileFromUri(context, musicUri)
+            tempFile = saveFileFromUri(context, musicUri, music)
 
-            tempFile?.let {
-                mediaPlayer.setDataSource(it.absolutePath)
+            tempFile?.let { file ->
+                mediaPlayer.setDataSource(file.absolutePath)
                 mediaPlayer.prepareAsync()
+
                 mediaPlayer.setOnPreparedListener {
                     duration = mediaPlayer.duration
-
-                    // Восстанавливаем положение воспроизведения
                     if (!isPlaying) {
                         mediaPlayer.seekTo(currentPosition)
                         mediaPlayer.start()
@@ -88,7 +86,6 @@ fun MusicPlayerScreen(music: Music?) {
             }
         }
 
-        // Обновление текущей позиции во время воспроизведения
         while (isPlaying) {
             delay(1000)
             currentPosition = mediaPlayer.currentPosition
@@ -98,14 +95,9 @@ fun MusicPlayerScreen(music: Music?) {
     DisposableEffect(Unit) {
         onDispose {
             mediaPlayer.release()
-            tempFile?.let {
-                if (it.exists()) {
-                    it.delete()
-                }
-            }
+            tempFile?.delete()
         }
     }
-
 
     if (music != null) {
         Column(
@@ -116,31 +108,19 @@ fun MusicPlayerScreen(music: Music?) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = music.name,
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = music.artist,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Text(text = music.name, style = MaterialTheme.typography.headlineLarge)
+            Text(text = music.artist, style = MaterialTheme.typography.titleMedium)
 
             LinearProgressIndicator(
                 progress = if (duration > 0) currentPosition.toFloat() / duration else 0f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
+                modifier = Modifier.fillMaxWidth().height(4.dp)
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = {
-                    // onPrevious()
-                }) {
+                IconButton(onClick = { /* onPrevious() */ }) {
                     Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
                 }
 
@@ -158,9 +138,7 @@ fun MusicPlayerScreen(music: Music?) {
                     )
                 }
 
-                IconButton(onClick = {
-                    // onNext()
-                }) {
+                IconButton(onClick = { /* onNext() */ }) {
                     Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Следующий трек")
                 }
             }
@@ -170,29 +148,18 @@ fun MusicPlayerScreen(music: Music?) {
     }
 }
 
-fun saveFileFromUri(context: Context, uri: Uri): File? {
-    try {
-        // Получаем InputStream из URI
-        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-
-        // Проверяем, что InputStream не нулевой
-        if (inputStream != null) {
-            // Определите, куда вы хотите сохранить новый файл
-            val outputFile = File(context.getExternalFilesDir(null), "outputFileName.extension") // Укажите нужные вам имя и расширение
-
-            // Используем FileOutputStream для записи данных
+fun saveFileFromUri(context: Context, uri: Uri, music: Music?): File? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        inputStream?.use { stream ->
+            val outputFile = File(context.getExternalFilesDir(null), "${music?.name?.replace(" ", "_")}.mp3")
             FileOutputStream(outputFile).use { outputStream ->
-                inputStream.copyTo(outputStream) // Копируем данные из inputStream в outputStream
+                stream.copyTo(outputStream)
             }
-
-            // Закрываем inputStream после использования
-            inputStream.close()
-            return outputFile
-        } else {
-            Log.e("SaveFile", "Unable to open InputStream")
+            outputFile
         }
     } catch (e: Exception) {
         Log.e("SaveFile", "An error occurred while saving the file", e)
+        null
     }
-    return null
 }
