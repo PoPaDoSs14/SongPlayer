@@ -33,7 +33,10 @@ fun SongApp(navController: NavHostController, getContent: ActivityResultLauncher
                     }
                 },
                 onPrevious = {
-                    // Реализуйте логику для нажатия на предыдущий трек здесь
+                    val previousMusic = playlistViewModel.getPreviousMusic(music)
+                    if (previousMusic != null) {
+                        navController.navigate("MusicPlayerScreen/${previousMusic.id}")
+                    }
                 }
             )
         }
