@@ -50,7 +50,7 @@ import java.io.InputStream
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
-fun MusicPlayerScreen(music: Music?) {
+fun MusicPlayerScreen(initialMusic: Music?, onNext:() -> Unit, onPrevious:() -> Unit) {
     val context = LocalContext.current
     val mediaPlayer = remember { MediaPlayer() }
     var isPlaying by remember { mutableStateOf(false) }
@@ -59,16 +59,18 @@ fun MusicPlayerScreen(music: Music?) {
     var tempFile: File? by remember { mutableStateOf(null) }
 
 
+    var currentMusic by remember { mutableStateOf(initialMusic) }
+
     val scope = rememberCoroutineScope()
     var job: Job? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(music) {
+    LaunchedEffect(currentMusic) {
         mediaPlayer.reset()
 
-        music?.musicLink?.let { musicLink ->
+        currentMusic?.musicLink?.let { musicLink ->
             val musicUri = Uri.parse(musicLink.toString())
 
-            tempFile = saveFileFromUri(context, musicUri, music)
+            tempFile = saveFileFromUri(context, musicUri, currentMusic)
 
             tempFile?.let { file ->
                 mediaPlayer.setDataSource(file.absolutePath)
@@ -115,8 +117,8 @@ fun MusicPlayerScreen(music: Music?) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = music?.name ?: "Unknown Track", style = MaterialTheme.typography.headlineLarge)
-        Text(text = music?.artist ?: "Unknown Artist", style = MaterialTheme.typography.titleMedium)
+        Text(text = currentMusic?.name ?: "Unknown Track", style = MaterialTheme.typography.headlineLarge)
+        Text(text = currentMusic?.artist ?: "Unknown Artist", style = MaterialTheme.typography.titleMedium)
 
         LinearProgressIndicator(
             progress = if (duration > 0) currentPosition.toFloat() / duration else 0f,
@@ -127,7 +129,7 @@ fun MusicPlayerScreen(music: Music?) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = { /* onPrevious() */ }) {
+            IconButton(onClick = {onPrevious()}) {
                 Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
             }
 
@@ -152,7 +154,7 @@ fun MusicPlayerScreen(music: Music?) {
                 )
             }
 
-            IconButton(onClick = { /* onNext() */ }) {
+            IconButton(onClick = { onNext() }) {
                 Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Следующий трек")
             }
         }

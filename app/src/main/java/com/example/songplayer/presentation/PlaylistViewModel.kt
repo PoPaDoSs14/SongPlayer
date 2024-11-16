@@ -29,6 +29,15 @@ class PlaylistViewModel(application: Application): AndroidViewModel(application)
         }
     }
 
+    fun getNextMusic(currentMusic: Music?): Music? {
+        val currentIndex = musicList.value!!.indexOf(currentMusic)
+        return if (currentIndex >= 0 && currentIndex < musicList.value!!.size - 1) {
+            musicList.value!![currentIndex + 1]
+        } else {
+            null
+        }
+    }
+
     fun getMusicById(id: String?): Music? {
         return _musicList.value?.find { it.id.toString() == id }
     }
