@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
 import com.example.songplayer.domain.Music
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -56,10 +57,6 @@ fun MusicPlayerScreen(music: Music?) {
     var tempFile: File? by remember { mutableStateOf(null) }
 
     LaunchedEffect(music) {
-        if (isPlaying) {
-            mediaPlayer.pause()
-        }
-
         mediaPlayer.reset()
 
         music?.musicLink?.let { musicLink ->
@@ -73,10 +70,17 @@ fun MusicPlayerScreen(music: Music?) {
 
                 mediaPlayer.setOnPreparedListener {
                     duration = mediaPlayer.duration
-                    if (!isPlaying) {
-                        mediaPlayer.seekTo(currentPosition)
+
+                    if (isPlaying) {
                         mediaPlayer.start()
-                        isPlaying = true
+                    }
+
+
+                    launch {
+                        while (isPlaying) {
+                            currentPosition = mediaPlayer.currentPosition
+                            delay(1000)
+                        }
                     }
                 }
 
@@ -84,11 +88,6 @@ fun MusicPlayerScreen(music: Music?) {
                     isPlaying = false
                 }
             }
-        }
-
-        while (isPlaying) {
-            delay(1000)
-            currentPosition = mediaPlayer.currentPosition
         }
     }
 
@@ -99,54 +98,51 @@ fun MusicPlayerScreen(music: Music?) {
         }
     }
 
-    if (music != null) {
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.secondary)
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+    Column(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.secondary)
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = music?.name ?: "Unknown Track", style = MaterialTheme.typography.headlineLarge)
+        Text(text = music?.artist ?: "Unknown Artist", style = MaterialTheme.typography.titleMedium)
+
+        LinearProgressIndicator(
+            progress = if (duration > 0) currentPosition.toFloat() / duration else 0f,
+            modifier = Modifier.fillMaxWidth().height(4.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = music.name, style = MaterialTheme.typography.headlineLarge)
-            Text(text = music.artist, style = MaterialTheme.typography.titleMedium)
+            IconButton(onClick = { /* onPrevious() */ }) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
+            }
 
-            LinearProgressIndicator(
-                progress = if (duration > 0) currentPosition.toFloat() / duration else 0f,
-                modifier = Modifier.fillMaxWidth().height(4.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(onClick = { /* onPrevious() */ }) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
+            IconButton(onClick = {
+                isPlaying = !isPlaying
+                if (isPlaying) {
+                    mediaPlayer.start()
+                } else {
+                    mediaPlayer.pause()
                 }
+            }) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "Пауза" else "Воспроизведение"
+                )
+            }
 
-                IconButton(onClick = {
-                    isPlaying = !isPlaying
-                    if (isPlaying) {
-                        mediaPlayer.start()
-                    } else {
-                        mediaPlayer.pause()
-                    }
-                }) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Пауза" else "Воспроизведение"
-                    )
-                }
-
-                IconButton(onClick = { /* onNext() */ }) {
-                    Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Следующий трек")
-                }
+            IconButton(onClick = { /* onNext() */ }) {
+                Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Следующий трек")
             }
         }
-    } else {
-        Text(text = "Музыка не найдена", style = MaterialTheme.typography.bodyLarge)
     }
 }
+
 
 fun saveFileFromUri(context: Context, uri: Uri, music: Music?): File? {
     return try {
