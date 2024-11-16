@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
 import com.example.songplayer.domain.Music
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -56,6 +58,10 @@ fun MusicPlayerScreen(music: Music?) {
     var duration by remember { mutableStateOf(0) }
     var tempFile: File? by remember { mutableStateOf(null) }
 
+
+    val scope = rememberCoroutineScope()
+    var job: Job? by remember { mutableStateOf(null) }
+
     LaunchedEffect(music) {
         mediaPlayer.reset()
 
@@ -70,15 +76,16 @@ fun MusicPlayerScreen(music: Music?) {
 
                 mediaPlayer.setOnPreparedListener {
                     duration = mediaPlayer.duration
-
                     if (isPlaying) {
                         mediaPlayer.start()
                     }
 
 
-                    launch {
+                    job = scope.launch {
                         while (isPlaying) {
-                            currentPosition = mediaPlayer.currentPosition
+                            if (mediaPlayer.isPlaying) {
+                                currentPosition = mediaPlayer.currentPosition
+                            }
                             delay(1000)
                         }
                     }
@@ -86,6 +93,7 @@ fun MusicPlayerScreen(music: Music?) {
 
                 mediaPlayer.setOnCompletionListener {
                     isPlaying = false
+                    job?.cancel()
                 }
             }
         }
@@ -94,6 +102,7 @@ fun MusicPlayerScreen(music: Music?) {
     DisposableEffect(Unit) {
         onDispose {
             mediaPlayer.release()
+            job?.cancel()
             tempFile?.delete()
         }
     }
@@ -123,12 +132,19 @@ fun MusicPlayerScreen(music: Music?) {
             }
 
             IconButton(onClick = {
-                isPlaying = !isPlaying
                 if (isPlaying) {
-                    mediaPlayer.start()
-                } else {
                     mediaPlayer.pause()
+                    job?.cancel()
+                } else {
+                    mediaPlayer.start()
+                    job = scope.launch {
+                        while (isPlaying) {
+                            currentPosition = mediaPlayer.currentPosition
+                            delay(1000)
+                        }
+                    }
                 }
+                isPlaying = !isPlaying
             }) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
