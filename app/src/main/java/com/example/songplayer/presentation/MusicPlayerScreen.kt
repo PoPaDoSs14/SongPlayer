@@ -2,6 +2,7 @@ package com.example.songplayer.presentation
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -50,62 +51,29 @@ import java.io.InputStream
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
-fun MusicPlayerScreen(initialMusic: Music?, onNext:() -> Unit, onPrevious:() -> Unit) {
+fun MusicPlayerScreen(initialMusic: Music?, onNext: () -> Unit, onPrevious: () -> Unit) {
     val context = LocalContext.current
-    val mediaPlayer = remember { MediaPlayer() }
     var isPlaying by remember { mutableStateOf(false) }
-    var currentPosition by remember { mutableStateOf(0) }
-    var duration by remember { mutableStateOf(0) }
-    var tempFile: File? by remember { mutableStateOf(null) }
-
-
     var currentMusic by remember { mutableStateOf(initialMusic) }
 
-    val scope = rememberCoroutineScope()
-    var job: Job? by remember { mutableStateOf(null) }
+
+    fun startMusicService(action: String, musicUri: String?) {
+        val musicServiceIntent = Intent(context, MusicService::class.java).apply {
+            putExtra("action", action)
+            musicUri?.let { putExtra("music_uri", it) }
+        }
+        context.startService(musicServiceIntent)
+    }
 
     LaunchedEffect(currentMusic) {
-        mediaPlayer.reset()
-
-        currentMusic?.musicLink?.let { musicLink ->
-            val musicUri = Uri.parse(musicLink.toString())
-
-            tempFile = saveFileFromUri(context, musicUri, currentMusic)
-
-            tempFile?.let { file ->
-                mediaPlayer.setDataSource(file.absolutePath)
-                mediaPlayer.prepareAsync()
-
-                mediaPlayer.setOnPreparedListener {
-                    duration = mediaPlayer.duration
-                    if (isPlaying) {
-                        mediaPlayer.start()
-                    }
-
-
-                    job = scope.launch {
-                        while (isPlaying) {
-                            if (mediaPlayer.isPlaying) {
-                                currentPosition = mediaPlayer.currentPosition
-                            }
-                            delay(1000)
-                        }
-                    }
-                }
-
-                mediaPlayer.setOnCompletionListener {
-                    isPlaying = false
-                    job?.cancel()
-                }
-            }
+        currentMusic?.let {
+            startMusicService("PLAY", it.musicLink.toString())
         }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer.release()
-            job?.cancel()
-            tempFile?.delete()
+            startMusicService("STOP", "")
         }
     }
 
@@ -120,33 +88,21 @@ fun MusicPlayerScreen(initialMusic: Music?, onNext:() -> Unit, onPrevious:() -> 
         Text(text = currentMusic?.name ?: "Unknown Track", style = MaterialTheme.typography.headlineLarge)
         Text(text = currentMusic?.artist ?: "Unknown Artist", style = MaterialTheme.typography.titleMedium)
 
-        LinearProgressIndicator(
-            progress = if (duration > 0) currentPosition.toFloat() / duration else 0f,
-            modifier = Modifier.fillMaxWidth().height(4.dp)
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = {onPrevious()}) {
+            IconButton(onClick = { onPrevious() }) {
                 Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
             }
 
             IconButton(onClick = {
-                if (isPlaying) {
-                    mediaPlayer.pause()
-                    job?.cancel()
-                } else {
-                    mediaPlayer.start()
-                    job = scope.launch {
-                        while (isPlaying) {
-                            currentPosition = mediaPlayer.currentPosition
-                            delay(1000)
-                        }
-                    }
-                }
                 isPlaying = !isPlaying
+                if (isPlaying) {
+                    startMusicService("PLAY", currentMusic?.musicLink.toString())
+                } else {
+                    startMusicService("PAUSE", "")
+                }
             }) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
