@@ -1,11 +1,15 @@
 package com.example.songplayer.presentation
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -95,20 +99,36 @@ class MusicService : Service() {
     }
 
     @SuppressLint("ForegroundServiceType")
-    private fun showNotification(content: String) {
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT
+    private fun showNotification(playStatus: String) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "music_player_channel"
+        val channelName = "Music Player"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val stopIntent = Intent(this, MusicService::class.java).apply {
+            action = "STOP_ACTION"
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            this,
+            0,
+            stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val builder = NotificationCompat.Builder(this, notificationChannelId)
-            .setContentTitle("Music Service")
-            .setContentText(content)
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Music Player")
+            .setContentText(playStatus)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentIntent(pendingIntent)
+            .addAction(R.drawable.ic_launcher_background, "Stop", stopPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
 
-        startForeground(notificationId, builder.build())
+        notificationManager.notify(1, notification)
     }
 
     override fun onDestroy() {
