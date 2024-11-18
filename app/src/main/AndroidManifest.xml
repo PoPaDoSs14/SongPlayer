@@ -33,7 +33,8 @@
         <service
             android:name=".presentation.MusicService"
             android:foregroundServiceType="mediaPlayback"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="ForegroundServicePermission" />
     </application>
 
 </manifest>

@@ -35,22 +35,22 @@ class MusicService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(notificationId, showNotification("Music is playing..."))
         val action = intent?.getStringExtra("action")
+
+        createNotificationChannel()
+
+        startForeground(notificationId, showNotification("Service starting..."))
 
         when (action) {
             "PLAY" -> {
                 val musicUri = intent.getStringExtra("music_uri")
                 playMusic(musicUri)
-                showNotification("Playing music")
             }
             "PAUSE" -> {
                 pauseMusic()
-                showNotification("Music paused")
             }
             "STOP" -> {
                 stopMusic()
-                showNotification("Music stopped")
             }
         }
 
@@ -108,7 +108,7 @@ class MusicService : Service() {
         stopSelf()
     }
 
-    @SuppressLint("ForegroundServiceType")
+
     private fun showNotification(playStatus: String): Notification {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "music_player_channel"
@@ -144,6 +144,14 @@ class MusicService : Service() {
         notificationManager.notify(notificationId, notification)
 
         return notification
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channel = NotificationChannel(notificationChannelId, "Music Service Channel", NotificationManager.IMPORTANCE_LOW)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     override fun onDestroy() {
