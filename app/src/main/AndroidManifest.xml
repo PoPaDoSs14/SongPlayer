@@ -31,6 +31,7 @@
 
         <service
             android:name=".presentation.MusicService"
+            android:foregroundServiceType="mediaPlayback"
             android:exported="false" />
     </application>
 

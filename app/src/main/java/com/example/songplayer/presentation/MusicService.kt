@@ -40,9 +40,16 @@ class MusicService : Service() {
             "PLAY" -> {
                 val musicUri = intent.getStringExtra("music_uri")
                 playMusic(musicUri)
+                showNotification("Playing music")
             }
-            "PAUSE" -> pauseMusic()
-            "STOP" -> stopMusic()
+            "PAUSE" -> {
+                pauseMusic()
+                showNotification("Music paused")
+            }
+            "STOP" -> {
+                stopMusic()
+                showNotification("Music stopped")
+            }
         }
 
         return START_STICKY
@@ -67,6 +74,7 @@ class MusicService : Service() {
                 mediaPlayer.setOnPreparedListener {
                     it.start()
                     Log.d("MusicService", "Music started successfully")
+                    showNotification("Playing music")
                 }
 
                 mediaPlayer.setOnCompletionListener {
@@ -104,9 +112,13 @@ class MusicService : Service() {
         val channelId = "music_player_channel"
         val channelName = "Music Player"
 
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
-            notificationManager.createNotificationChannel(channel)
+            val existingChannel = notificationManager.getNotificationChannel(channelId)
+            if (existingChannel == null) {
+                val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
+                notificationManager.createNotificationChannel(channel)
+            }
         }
 
         val stopIntent = Intent(this, MusicService::class.java).apply {
@@ -128,7 +140,7 @@ class MusicService : Service() {
             .setOngoing(true)
             .build()
 
-        notificationManager.notify(1, notification)
+        notificationManager.notify(notificationId, notification)
     }
 
     override fun onDestroy() {
