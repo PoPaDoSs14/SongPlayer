@@ -1,6 +1,7 @@
 package com.example.songplayer.presentation
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -34,6 +35,7 @@ class MusicService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground(notificationId, showNotification("Music is playing..."))
         val action = intent?.getStringExtra("action")
 
         when (action) {
@@ -107,11 +109,10 @@ class MusicService : Service() {
     }
 
     @SuppressLint("ForegroundServiceType")
-    private fun showNotification(playStatus: String) {
+    private fun showNotification(playStatus: String): Notification {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "music_player_channel"
         val channelName = "Music Player"
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val existingChannel = notificationManager.getNotificationChannel(channelId)
@@ -141,6 +142,8 @@ class MusicService : Service() {
             .build()
 
         notificationManager.notify(notificationId, notification)
+
+        return notification
     }
 
     override fun onDestroy() {
