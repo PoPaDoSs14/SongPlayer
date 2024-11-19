@@ -72,8 +72,8 @@ class MusicService : Service() {
 
                 mediaPlayer.setOnPreparedListener {
                     it.start()
-                    Log.d("MusicService", "Music started successfully")
                     showNotification("Playing music") // Обновление уведомления
+                    Log.d("MusicService", "Music started successfully")
                 }
 
                 mediaPlayer.setOnCompletionListener {
