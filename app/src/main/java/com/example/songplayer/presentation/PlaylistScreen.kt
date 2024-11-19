@@ -58,7 +58,7 @@ fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostContr
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                getContent.launch(intent)
+                pickAudioLauncher.launch(arrayOf("audio/*"))
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить музыку")
             }

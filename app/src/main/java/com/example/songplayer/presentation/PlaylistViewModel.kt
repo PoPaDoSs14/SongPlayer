@@ -3,6 +3,7 @@ package com.example.songplayer.presentation
 import android.app.Application
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -54,17 +55,24 @@ class PlaylistViewModel(application: Application): AndroidViewModel(application)
     fun addMusic(uri: Uri) {
         viewModelScope.launch {
             val mediaMetadataRetriever = MediaMetadataRetriever()
-            mediaMetadataRetriever.setDataSource(getApplication(), uri)
+            try {
+                mediaMetadataRetriever.setDataSource(getApplication(), uri)
+                val name = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Unknown"
+                val artist = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: "Unknown"
 
-            val name = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Unknown"
-            val artist = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: "Unknown"
 
-            val newMusic = Music(id = 0, name = name, artist = artist, musicLink = uri)
+                Log.d("MusicService", "Extracted name: $name, artist: $artist")
 
-            repo.addMusic(newMusic)
+                val newMusic = Music(id = 0, name = name, artist = artist, musicLink = uri)
+                repo.addMusic(newMusic)
 
-            repo.getMusicList().collect { musicList ->
-                _musicList.value = musicList
+                repo.getMusicList().collect { musicList ->
+                    _musicList.value = musicList
+                }
+            } catch (e: Exception) {
+                Log.e("MusicService", "Error retrieving metadata", e)
+            } finally {
+                mediaMetadataRetriever.release()
             }
         }
     }
