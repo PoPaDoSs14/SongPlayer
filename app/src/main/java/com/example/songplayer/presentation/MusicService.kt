@@ -32,13 +32,11 @@ class MusicService : Service() {
     override fun onCreate() {
         super.onCreate()
         mediaPlayer = MediaPlayer()
+        createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.getStringExtra("action")
-
-        createNotificationChannel()
-
         startForeground(notificationId, showNotification("Service starting..."))
 
         when (action) {
@@ -69,21 +67,19 @@ class MusicService : Service() {
             mediaPlayer.reset()
             try {
                 val uri = Uri.parse(musicUri)
-
                 mediaPlayer.setDataSource(this, uri)
                 mediaPlayer.prepareAsync()
 
                 mediaPlayer.setOnPreparedListener {
                     it.start()
                     Log.d("MusicService", "Music started successfully")
-                    showNotification("Playing music")
+                    showNotification("Playing music") // Обновление уведомления
                 }
 
                 mediaPlayer.setOnCompletionListener {
                     Log.d("MusicService", "Music playback completed.")
+                    showNotification("Music completed") // Уведомление по завершении
                 }
-
-                showNotification("Playing music")
             } catch (e: IOException) {
                 Log.e("MusicService", "Error setting data source", e)
             } catch (e: Exception) {
@@ -108,16 +104,14 @@ class MusicService : Service() {
         stopSelf()
     }
 
-
     private fun showNotification(playStatus: String): Notification {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "music_player_channel"
-        val channelName = "Music Player"
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val existingChannel = notificationManager.getNotificationChannel(channelId)
+            val existingChannel = notificationManager.getNotificationChannel(notificationChannelId)
             if (existingChannel == null) {
-                val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
+                val channel = NotificationChannel(notificationChannelId, "Music Service Channel", NotificationManager.IMPORTANCE_LOW)
                 notificationManager.createNotificationChannel(channel)
             }
         }
@@ -132,25 +126,27 @@ class MusicService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, channelId)
+        val notification = NotificationCompat.Builder(this, notificationChannelId)
             .setContentTitle("Music Player")
             .setContentText(playStatus)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .addAction(R.drawable.ic_launcher_background, "Stop", stopPendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
+            .setOngoing(true) // Уведомление будет постоянно, пока сервис работает
             .build()
 
         notificationManager.notify(notificationId, notification)
-
         return notification
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(notificationChannelId, "Music Service Channel", NotificationManager.IMPORTANCE_LOW)
-            notificationManager.createNotificationChannel(channel)
+            val channelExists = notificationManager.getNotificationChannel(notificationChannelId) != null
+            if (!channelExists) {
+                val channel = NotificationChannel(notificationChannelId, "Music Service Channel", NotificationManager.IMPORTANCE_LOW)
+                notificationManager.createNotificationChannel(channel)
+                Log.d("MusicService", "Notification channel created")
+            }
         }
     }
 

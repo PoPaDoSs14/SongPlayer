@@ -62,7 +62,7 @@ fun MusicPlayerScreen(initialMusic: Music?, onNext: () -> Unit, onPrevious: () -
             putExtra("action", action)
             musicUri?.let { putExtra("music_uri", it) }
         }
-        context.startService(musicServiceIntent)
+        context.startForegroundService(musicServiceIntent)
     }
 
     LaunchedEffect(currentMusic) {
