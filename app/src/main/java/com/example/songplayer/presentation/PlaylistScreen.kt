@@ -102,13 +102,13 @@ fun PlaylistScreen(viewModel: PlaylistViewModel, navHostController: NavHostContr
             ) {
                 Text(
                     text = music.name,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = music.artist,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
