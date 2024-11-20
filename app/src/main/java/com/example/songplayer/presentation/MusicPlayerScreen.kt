@@ -38,6 +38,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
@@ -79,21 +81,38 @@ fun MusicPlayerScreen(initialMusic: Music?, onNext: () -> Unit, onPrevious: () -
 
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.secondary)
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFFBB86FC),
+                        Color(0xFF3700B3)
+                    )
+                )
+            )
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = currentMusic?.name ?: "Unknown Track", style = MaterialTheme.typography.headlineLarge)
-        Text(text = currentMusic?.artist ?: "Unknown Artist", style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = currentMusic?.name ?: "Unknown Track",
+            style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
+        )
+        Text(
+            text = currentMusic?.artist ?: "Unknown Artist",
+            style = MaterialTheme.typography.titleMedium.copy(color = Color.White),
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            IconButton(onClick = { onPrevious() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Предыдущий трек")
+            IconButton(onClick = { onPrevious() }, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Предыдущий трек",
+                    tint = Color.White
+                )
             }
 
             IconButton(onClick = {
@@ -103,15 +122,20 @@ fun MusicPlayerScreen(initialMusic: Music?, onNext: () -> Unit, onPrevious: () -
                 } else {
                     startMusicService("PAUSE", "")
                 }
-            }) {
+            }, modifier = Modifier.weight(1f)) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Пауза" else "Воспроизведение"
+                    contentDescription = if (isPlaying) "Пауза" else "Воспроизведение",
+                    tint = Color.White
                 )
             }
 
-            IconButton(onClick = { onNext() }) {
-                Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Следующий трек")
+            IconButton(onClick = { onNext() }, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "Следующий трек",
+                    tint = Color.White
+                )
             }
         }
     }
